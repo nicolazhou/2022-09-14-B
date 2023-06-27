@@ -5,7 +5,11 @@
 package it.polito.tdp.itunes;
 
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
+import java.util.Set;
+
+import it.polito.tdp.itunes.model.Album;
 import it.polito.tdp.itunes.model.Model;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -34,7 +38,7 @@ public class FXMLController {
     private Button btnSet; // Value injected by FXMLLoader
 
     @FXML // fx:id="cmbA1"
-    private ComboBox<?> cmbA1; // Value injected by FXMLLoader
+    private ComboBox<Album> cmbA1; // Value injected by FXMLLoader
 
     @FXML // fx:id="txtDurata"
     private TextField txtDurata; // Value injected by FXMLLoader
@@ -48,16 +52,120 @@ public class FXMLController {
     @FXML
     void doComponente(ActionEvent event) {
     	
+    	this.txtResult.clear();
+        
+    	if(!this.model.isGrafoLoaded()) {
+    		
+    		this.txtResult.setText("Crea grafo prima!");
+    		return;
+    		
+    	}
+    	
+    	
+    	Album a1 = this.cmbA1.getValue();
+    	
+    	if(a1 == null) {
+    		
+    		this.txtResult.appendText("Scegli un album A1 prima! \n");
+    		return;
+    		
+    	}
+    	
+    	List<Album> connessi = this.model.getListaConnessa(a1);
+    	
+    	int numBrani = this.model.getNumBraniTot(connessi);
+    	
+    	this.txtResult.appendText("Componente connesa - " + a1 + "\n");
+    	this.txtResult.appendText("Dimensione componente = " + connessi.size() + "\n");
+    	this.txtResult.appendText("# Album componente = " + numBrani + "\n");
+    	
+    	
     }
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
+    	
+    	this.txtResult.clear();
+        
+    	String input = this.txtDurata.getText();
+    	
+    	Integer d = 0; // secondi
+    	
+    	try {
+    		
+    		d = Integer.parseInt(input);
+    		
+    	} catch(NumberFormatException e) {
+    		
+    		this.txtResult.setText("Inserisci un valore intero alla durata !");
+    		return;
+    		
+    	}
+    	
+    	this.model.creaGrafo(d);
+    	
+    	this.txtResult.appendText("Grafo creato! \n");
+    	this.txtResult.appendText("# Vertici: " + this.model.getNNodes() + "\n");
+    	this.txtResult.appendText("# Archi: " + this.model.getNArchi() + "\n");
+        
+    	
+    	this.cmbA1.getItems().clear();
+    	this.cmbA1.getItems().addAll(this.model.getVertici());
+    	
     	
     }
 
     @FXML
     void doEstraiSet(ActionEvent event) {
 
+    	this.txtResult.clear();
+    	
+    	Album a1 = this.cmbA1.getValue();
+    	
+    	if(a1 == null) {
+    		
+    		this.txtResult.appendText("Scegli un album A1 prima! \n");
+    		return;
+    		
+    	}
+
+    	String input = this.txtX.getText();
+    	
+    	Integer dTOT = 0; // minuti
+    	
+    	try {
+    		
+    		dTOT = Integer.parseInt(input);
+    		
+    	} catch(NumberFormatException e) {
+    		
+    		this.txtResult.setText("Inserisci un valore intero a dTOT !");
+    		return;
+    		
+    	}
+    	
+    	Set<Album> soluzione = this.model.trova(a1, dTOT);
+    	
+    	if(soluzione == null) {
+    		
+    		this.txtResult.appendText("Impossibile, la durata di " + a1 + " supera dTOT !\n");
+    		
+    	} else {
+    		
+        	
+        	this.txtResult.appendText("Ricorsione: lista di album: \n");
+        	
+        	for(Album a : soluzione) {
+        		
+        		this.txtResult.appendText(a+"\n");
+        		
+        	}
+    		
+    	}
+    	
+    	
+    	
+    	
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete

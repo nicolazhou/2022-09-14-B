@@ -139,4 +139,93 @@ public class ItunesDAO {
 		}
 		return result;
 	}
+	
+	public List<Album> getVertici(int d){
+		final String sql = "SELECT a.*, AVG(t.Milliseconds) as media "
+				+ "FROM album a, track t "
+				+ "WHERE a.AlbumId = t.AlbumId "
+				+ "GROUP BY a.AlbumId "
+				+ "HAVING media > ?";
+		
+		List<Album> result = new LinkedList<>();
+		
+		try {
+			Connection conn = DBConnect.getConnection();
+			PreparedStatement st = conn.prepareStatement(sql);
+			
+			st.setInt(1, d*1000);
+			
+			ResultSet res = st.executeQuery();
+
+			while (res.next()) {
+				result.add(new Album(res.getInt("AlbumId"), res.getString("Title"), res.getDouble("media")));
+			}
+			conn.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new RuntimeException("SQL Error");
+		}
+		return result;
+	}
+	
+	public int getNumPlaylist(Album a1, Album a2){
+		final String sql = "SELECT t1.AlbumId, t2.AlbumId, COUNT(*) as num "
+				+ "FROM playlisttrack pt1, playlisttrack pt2, track t1, track t2 "
+				+ "WHERE t1.TrackId = pt1.TrackId AND t2.TrackId = pt2.TrackId "
+				+ "AND t1.AlbumId = ? AND t2.AlbumId = ? AND pt1.PlaylistId = pt2.PlaylistId "
+				+ "GROUP BY t1.AlbumId, t2.AlbumId";
+		
+		int result = 0;
+		
+		try {
+			Connection conn = DBConnect.getConnection();
+			PreparedStatement st = conn.prepareStatement(sql);
+			
+			st.setInt(1, a1.getAlbumId());
+			st.setInt(2, a2.getAlbumId());
+			
+			ResultSet res = st.executeQuery();
+
+			if(res.first()) {
+				
+				result = res.getInt("num");
+				
+			}
+			
+			conn.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new RuntimeException("SQL Error");
+		}
+		return result;
+	}
+	
+	public int getNumBrani(Album a){
+		final String sql = "SELECT COUNT(*) as num "
+				+ "FROM album a, track t "
+				+ "WHERE a.AlbumId = t.AlbumId AND a.AlbumId = ?";
+		
+		int result = 0;
+		
+		try {
+			Connection conn = DBConnect.getConnection();
+			PreparedStatement st = conn.prepareStatement(sql);
+			
+			st.setInt(1, a.getAlbumId());
+			
+			ResultSet res = st.executeQuery();
+
+			if(res.first()) {
+				
+				result = res.getInt("num");
+				
+			}
+			
+			conn.close();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new RuntimeException("SQL Error");
+		}
+		return result;
+	}
 }
